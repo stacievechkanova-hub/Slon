@@ -11,11 +11,11 @@ $(function () {
     }
   });
 
-  /* Sandwich mobile menu */
-  $(document).on('click', '.sandwich', function () {
+  /* Кнопка «Меню» — мобильная навигация */
+  $(document).on('click', '.btn-header-menu', function () {
     if ($('.menu-mobile').is(':hidden')) {
       $('.menu-mobile').slideDown(200);
-      $('.sandwich').addClass('active');
+      $('.btn-header-menu').addClass('active').attr('aria-expanded', 'true');
       $('body').addClass('body--menu');
       $('.menu-overlay').fadeIn(200);
     } else {
@@ -23,7 +23,7 @@ $(function () {
     }
   });
 
-  $(document).on('click', '.menu-overlay', function () {
+  $(document).on('click', '.menu-overlay, .menu-mobile__close', function () {
     closeMobileMenu();
   });
 
@@ -31,12 +31,35 @@ $(function () {
     closeMobileMenu();
   });
 
+  $(document).on('keydown', function (e) {
+    if (e.key === 'Escape' && $('body').hasClass('body--menu')) {
+      closeMobileMenu();
+    }
+  });
+
   function closeMobileMenu() {
     $('.menu-mobile').slideUp(200);
-    $('.sandwich').removeClass('active');
+    $('.btn-header-menu').removeClass('active').attr('aria-expanded', 'false');
     $('body').removeClass('body--menu');
     $('.menu-overlay').fadeOut(200);
   }
+
+  /* Кнопка «Наверх» */
+  var $scrollTopBtn = $(
+    '<button type="button" class="btn-scroll-top" aria-label="Наверх" title="Наверх">' +
+    '<i class="fal fa-chevron-up" aria-hidden="true"></i></button>'
+  ).appendTo('body');
+
+  function toggleScrollTopBtn() {
+    $scrollTopBtn.toggleClass('is-visible', $(window).scrollTop() > 400);
+  }
+
+  $(window).on('scroll', toggleScrollTopBtn);
+  toggleScrollTopBtn();
+
+  $scrollTopBtn.on('click', function () {
+    $('html, body').animate({ scrollTop: 0 }, 400);
+  });
 
   /* Hero slider */
   var $heroSlider = $('.hero-slider');
@@ -79,6 +102,21 @@ $(function () {
 
     goToSlide(0);
     startAutoplay();
+  }
+
+  /* Segments slider (slick) */
+  if ($('.segments-slider__track').length && typeof $.fn.slick === 'function') {
+    $('.segments-slider__track').slick({
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      infinite: true,
+      arrows: true,
+      dots: true,
+      appendDots: $('.segments-slider__dots'),
+      prevArrow: $('.segments-slider__prev'),
+      nextArrow: $('.segments-slider__next'),
+      touchThreshold: 1000
+    });
   }
 
   /* Partners slider (slick) */
@@ -160,4 +198,24 @@ $(function () {
 
   updateHeaderSpacer();
   $(window).on('resize', updateHeaderSpacer);
+
+  /* Catalog category filter */
+  $(document).on('click', '.catalog-filter__btn', function () {
+    var filter = $(this).data('filter');
+    var $buttons = $('.catalog-filter__btn');
+    var $items = $('.catalog-grid [data-category]');
+
+    $buttons.removeClass('is-active').attr('aria-selected', 'false');
+    $(this).addClass('is-active').attr('aria-selected', 'true');
+
+    if (filter === 'all') {
+      $items.removeClass('is-hidden');
+      return;
+    }
+
+    $items.each(function () {
+      var match = $(this).data('category') === filter;
+      $(this).toggleClass('is-hidden', !match);
+    });
+  });
 });
